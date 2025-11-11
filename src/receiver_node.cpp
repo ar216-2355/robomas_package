@@ -1,9 +1,11 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/string.hpp>
+#include "robomas_package/msg/motor_feedback.hpp"
 
 #include <unistd.h>
 #include <cstring>
 #include <string>
+#include <vector>
 #include <sstream>
 #include <iomanip>
 #include <sys/socket.h>
@@ -16,7 +18,7 @@ int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<rclcpp::Node>("can_receiver");
-  auto pub = node->create_publisher<std_msgs::msg::String>("can_rx", 10);
+  auto pub = node->create_publisher<robomas_package::msg::MotorFeedback>("motor_rx", 10);
 
   const char * ifname = (argc > 1) ? argv[1] : "can0";
 
@@ -30,23 +32,37 @@ int main(int argc, char * argv[])
   addr.can_ifindex = ifr.ifr_ifindex;
   bind(sock, (struct sockaddr*)&addr, sizeof(addr));
 
+  // フィルター設定　（filters配列にpush_backで入れる）
+  std::vector<struct can_filter> filters;
+  for (uint16_t id = 0x201; id <= 0x208; ++id) {
+    struct can_filter f;
+    f.can_id = id;
+    f.can_mask = CAN_SFF_MASK; // 標準ID(11bit)での完全一致
+    filters.push_back(f);
+  }
+  int ret = setsockopt(sock, SOL_CAN_RAW, CAN_RAW_FILTER, filters.data(), filters.size() * sizeof(struct can_filter));
+  if(ret < 0) {
+    RCLCPP_ERROR(node->get_logger(), "setsockopt failed");
+    return -1;
+  }
+
   struct can_frame frame;
 
   while (rclcpp::ok()) {
     if (read(sock, &frame, sizeof(frame)) < 0) continue;
 
-    std::ostringstream ss;
-    ss << "0x" << std::hex << frame.can_id << " [" << std::dec << (int)frame.can_dlc << "] ";
-    for(int i = 0; i < frame.can_dlc; i++){
-      ss << std::setw(2) << std::setfill('0') << std::hex << (int)frame.data[i] << " ";
+    robomas_package::msg::MotorFeedback msg;
+
+    if(frame.can_id >= 0x201 && frame.can_id <= 0x208){
+      msg.id = (uint8_t)(frame.can_id - (uint8_t)0x200);
+      msg.angle = (static_cast<uint16_t>((frame.data[0]) << 8) | frame.data[1]);
+      msg.rotational_speed = (static_cast<uint16_t>((frame.data[2]) << 8) | frame.data[3]);
+      msg.current = (static_cast<uint16_t>((frame.data[4]) << 8) | frame.data[5]);
+      msg.motor_tempelature = frame.data[6];
+
+      pub->publish(msg);
     }
-
-    std::string text = ss.str();
-    RCLCPP_INFO(node->get_logger(), "%s", text.c_str());
-
-    std_msgs::msg::String msg;
-    msg.data = text;
-    pub->publish(msg);
+    
   }
 
   close(sock);

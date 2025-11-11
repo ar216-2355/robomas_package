@@ -4,7 +4,7 @@
   <name>robomas_package</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="sgmt_519@icloud.com">crs</maintainer>
+  <maintainer email="ar216gfmem2355@gmail.com">crs</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
@@ -12,8 +12,10 @@
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
 
-  <test_depend>ament_lint_auto</test_depend>
-  <test_depend>ament_lint_common</test_depend>
+  <build_depend>rosidl_default_generators</build_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
+
+  <member_of_group>rosidl_interface_packages</member_of_group>
 
   <export>
     <build_type>ament_cmake</build_type>
