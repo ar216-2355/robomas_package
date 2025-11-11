@@ -40,6 +40,9 @@ int main(int argc, char * argv[])
 		f.can_mask = CAN_SFF_MASK; // 標準ID(11bit)での完全一致
 		filters.push_back(f);
 	}
+    /// filter begin
+
+    /// filter end
 	int ret = setsockopt(sock, SOL_CAN_RAW, CAN_RAW_FILTER, filters.data(), filters.size() * sizeof(struct can_filter));
 	if(ret < 0) {
 		RCLCPP_ERROR(node->get_logger(), "setsockopt failed");
