@@ -34,15 +34,14 @@ int main(int argc, char * argv[])
 
 	// フィルター設定　（filters配列にpush_backで入れる）
 	std::vector<struct can_filter> filters;
+    
 	for (uint16_t id = 0x201; id <= 0x208; ++id) {
 		struct can_filter f;
 		f.can_id = id;
 		f.can_mask = CAN_SFF_MASK; // 標準ID(11bit)での完全一致
 		filters.push_back(f);
 	}
-    /// filter begin
 
-    /// filter end
 	int ret = setsockopt(sock, SOL_CAN_RAW, CAN_RAW_FILTER, filters.data(), filters.size() * sizeof(struct can_filter));
 	if(ret < 0) {
 		RCLCPP_ERROR(node->get_logger(), "setsockopt failed");
