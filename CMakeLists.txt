@@ -12,17 +12,30 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/MotorFeedback.msg"
+  "msg/SendCurrentCmd.msg"
+  "msg/MotorCmd.msg"
+  "msg/MotorCmdArray.msg"
 )
 
-add_executable(talker src/receiver_node.cpp)
-ament_target_dependencies(talker rclcpp std_msgs)
+add_executable(receiver src/receiver_node.cpp)
+ament_target_dependencies(receiver rclcpp std_msgs)
+
+add_executable(calculator src/calculator_node.cpp)
+ament_target_dependencies(calculator rclcpp std_msgs)
+
+add_executable(sender src/sender_node.cpp)
+ament_target_dependencies(sender rclcpp std_msgs)
 
 # Use rosidl_get_typesupport_target + target_link_libraries instead of rosidl_target_interfaces
 rosidl_get_typesupport_target(cpp_typesupport_target "${PROJECT_NAME}" "rosidl_typesupport_cpp")
-target_link_libraries(talker "${cpp_typesupport_target}")
+target_link_libraries(receiver "${cpp_typesupport_target}")
+target_link_libraries(calculator "${cpp_typesupport_target}")
+target_link_libraries(sender "${cpp_typesupport_target}")
 
 install(TARGETS
-  talker
+  receiver
+  calculator
+  sender
   DESTINATION lib/${PROJECT_NAME})
 
 ament_export_dependencies(rosidl_default_runtime)
