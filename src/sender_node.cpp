@@ -63,6 +63,7 @@ private:
             RCLCPP_ERROR(this->get_logger(), "Failed to send CAN frame");
         }
     }
+    
     std::string ifname_;
     int sock_;
     rclcpp::Subscription<robomas_package::msg::SendCurrentCmd>::SharedPtr subscription_;
