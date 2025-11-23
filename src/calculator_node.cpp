@@ -23,7 +23,7 @@ enum class MotorType { M2006, M3508 };
 enum class CtrlMode  : uint8_t { CURRENT=0, SPEED=1, POSITION=2 };
 
 struct Pid {
-    std::atomic<float> kp{0.2f};
+    std::atomic<float> kp{0.3f};
     std::atomic<float> ki{0.01f};
     std::atomic<float> kd{0.01f};
     float i_sum{0}; // 積分項
@@ -52,7 +52,7 @@ struct MotorState {
     std::atomic<MotorType> type{MotorType::M3508};
     std::atomic<CtrlMode>  mode{CtrlMode::CURRENT};
 
-    uint16_t real_current{0};
+    int16_t real_current{0};
     int16_t real_speed{0};
     float real_position{0};
 
@@ -151,19 +151,19 @@ private:
     void timer_callback() {
         auto message = robomas_package::msg::SendCurrentCmd();
         message.id = 0x200;
-        message.current1 = static_cast<uint16_t>(M[0].current.load());
-        message.current2 = static_cast<uint16_t>(M[1].current.load());
-        message.current3 = static_cast<uint16_t>(M[2].current.load());
-        message.current4 = static_cast<uint16_t>(M[3].current.load());
+        message.current1 = static_cast<int16_t>(M[0].current.load());
+        message.current2 = static_cast<int16_t>(M[1].current.load());
+        message.current3 = static_cast<int16_t>(M[2].current.load());
+        message.current4 = static_cast<int16_t>(M[3].current.load());
         publisher_->publish(message);
 
         if (motor_number <= 4) return;
         
         message.id = 0x1FF;
-        message.current1 = static_cast<uint16_t>(M[4].current.load());
-        message.current2 = static_cast<uint16_t>(M[5].current.load());
-        message.current3 = static_cast<uint16_t>(M[6].current.load());
-        message.current4 = static_cast<uint16_t>(M[7].current.load());
+        message.current1 = static_cast<int16_t>(M[4].current.load());
+        message.current2 = static_cast<int16_t>(M[5].current.load());
+        message.current3 = static_cast<int16_t>(M[6].current.load());
+        message.current4 = static_cast<int16_t>(M[7].current.load());
         publisher_->publish(message);
         
     }

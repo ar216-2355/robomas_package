@@ -4,6 +4,7 @@
 
 #include <unistd.h>
 #include <cstring>
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <sstream>
@@ -57,9 +58,15 @@ int main(int argc, char * argv[])
 
 		if(frame.can_id >= 0x201 && frame.can_id <= 0x208){
 			msg.id = (uint8_t)(frame.can_id - (uint8_t)0x200);
+
 			msg.angle = (static_cast<uint16_t>((frame.data[0]) << 8) | frame.data[1]);
-			msg.rotational_speed = (static_cast<uint16_t>((frame.data[2]) << 8) | frame.data[3]);
-			msg.current = (static_cast<uint16_t>((frame.data[4]) << 8) | frame.data[5]);
+
+			uint16_t rec_rotational_speed = (static_cast<uint16_t>((frame.data[2]) << 8) | frame.data[3]);
+			std::memcpy(&msg.rotational_speed, &rec_rotational_speed, sizeof(msg.rotational_speed));
+
+			uint16_t rec_current = (static_cast<uint16_t>((frame.data[4]) << 8) | frame.data[5]);
+			std::memcpy(&msg.current, &rec_current, sizeof(msg.current));
+
 			msg.motor_temperature = frame.data[6];
 
 			pub->publish(msg);
